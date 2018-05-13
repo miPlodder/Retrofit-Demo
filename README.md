@@ -122,3 +122,59 @@ compositeDisposable.add(observable
                                 public void onComplete() {}
                             }));
 ```
+
+## OkHttp Guide
+
+It offers a request/response API with client to make Network Operation easier. We have two ways to add request to the OkHttpClient, firstly by using enqueue (which runs on Worker Thread) and execute (which works on the current Thread).
+
+### Example 
+```
+OkHttpClient client = new OkHttpClient();
+Request request = new Request.Builder().url("www.google.com").build();
+
+client.newCall(request).enqueue(new Callback() {
+      @Override
+      public void onFailure(Call call, final IOException e) {
+          runOnUiThread(new Runnable() {
+          @Override
+          public void run() {}
+            });
+          }
+
+      @Override
+      public void onResponse(Call call, final Response response) throws IOException {
+             runOnUiThread(new Runnable() {
+             @Override
+             public void run() {}
+                });
+            }
+        });
+```
+
+## Using RxJava, Retrofit, OkHttp in conjunction
+
+We can enhance Retrofit's functionality by using RxJava and OkHttp. Below is a well-documented example for the same.
+```
+retrofit = new Retrofit.Builder()
+                    .baseUrl(BASE_URL)
+                    /*
+                        adding ConverterFactory helps in serialising and de-serialising the json
+                        for example there are many libraries for this purpose like Gson, Moshi
+                     */
+                    .addConverterFactory(GsonConverterFactory.create())
+                    /*  adding AdapterFactory helps us in adding support for rx
+                        otherwise, we would have to use Call return type to work, instead of Observable
+                    */
+                    .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+                    /*  adding client helps us to customize HTTP message
+                        For example, adding query to every URL request like Auth Token
+                        We can do this using OkHttpClient, instead of adding argument to every retrofit request
+                    */
+                    .client(new OkHttpClient())
+                    .build();
+
+```
+
+## Contributor
+
+[Saksham Handu](https://github.com/miPlodder)
